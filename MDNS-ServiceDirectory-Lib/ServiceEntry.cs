@@ -10,6 +10,7 @@ namespace Termors.Nuget.MDNSServiceDirectory
         public string Host { get; set; }
         public string Service { get; set; }
         public ushort Port { get; set; }
+        public DateTime LastSeenAlive { get; set; } = DateTime.Now;
 
         private List<IPAddress> _ipAddresses = new List<IPAddress>();
         public IList<IPAddress> IPAddresses

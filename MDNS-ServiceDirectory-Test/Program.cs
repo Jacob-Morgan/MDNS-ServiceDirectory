@@ -41,6 +41,10 @@ namespace Termors.Development.Test.MDNSServiceDirectoryTest
             sd.KeepaliveCheckInterval = 10;
             sd.KeepaliveTcp = true;
 
+            sd.HostDiscovered += (dir, svc) => { Console.WriteLine("Service discovered: {0}", svc); };
+            sd.HostRemoved += (dir, svc) => { Console.WriteLine("Service removed: {0}", svc); };
+            sd.HostUpdated += (dir, svc) => { Console.WriteLine("Service updated: {0}", svc); };
+
             sd.Init();
         }
 

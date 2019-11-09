@@ -62,6 +62,7 @@ namespace Termors.Nuget.MDNSServiceDirectory
 
         public event HostEvent HostDiscovered;
         public event HostEvent HostRemoved;
+        public event HostEvent HostUpdated;
 
         protected virtual void AddService(ServiceEntry entry)
         {
@@ -181,6 +182,7 @@ namespace Termors.Nuget.MDNSServiceDirectory
                         foreach (var h in host) 
                         {
                             if (! h.IPAddresses.Contains(address.Address)) h.IPAddresses.Add(address.Address);
+                            HostUpdated?.Invoke(this, h);
                         }
                     }
                 }
@@ -236,7 +238,7 @@ namespace Termors.Nuget.MDNSServiceDirectory
                 {
                     Debug.WriteLine("Removed service {0} at {1} due to keepalive ping failure", svc.Service, svc.Host);
                     RemoveService(svc);
-                    return;             // No sense in trying TCP when ICMP has already failed
+                    return;             
                 }
             }
 
@@ -249,9 +251,14 @@ namespace Termors.Nuget.MDNSServiceDirectory
                     {
                         Debug.WriteLine("Removed service {0} at {1}:{2} due to Tcp Connect failure", svc.Service, svc.Host, svc.Port);
                         RemoveService(svc);
+                        return;
                     }
                 }
             }
+
+            // Service is alive
+            svc.LastSeenAlive = DateTime.Now;
+            HostUpdated?.Invoke(this, svc);
         }
 
         #region IDisposable Support
