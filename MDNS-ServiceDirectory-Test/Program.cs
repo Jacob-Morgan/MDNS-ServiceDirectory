@@ -1,5 +1,6 @@
 ﻿using System;
-using System.Collections.Concurrent;
+using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -18,8 +19,14 @@ namespace Termors.Development.Test.MDNSServiceDirectoryTest
             return arg.ToLowerInvariant().Contains("hippohttp");
         }
 
+        private static bool LogDiscovery { get; set; } = false;
+        private static bool LogUpdate { get; set; } = false;
+        private static bool LogRemoval { get; set; } = false;
+
         public static void Main(string[] args)
         {
+            ParseArgs(args);
+
             Init();
 
             // Schedule first task
@@ -36,14 +43,26 @@ namespace Termors.Development.Test.MDNSServiceDirectoryTest
             endEvent.WaitOne();
         }
 
+        private static void ParseArgs(string[] args)
+        {
+            List<string> argsLower = new List<string>(args.Length);
+            foreach (var s in args) argsLower.Add(s.ToLowerInvariant());
+
+            if (argsLower.Contains("-d") || argsLower.Contains("--discovery")) LogDiscovery = true;
+            if (argsLower.Contains("-u") || argsLower.Contains("--update")) LogUpdate = true;
+            if (argsLower.Contains("-r") || argsLower.Contains("--removal")) LogRemoval = true;
+        }
+
         private static void Init()
         {
+            Debug.Listeners.Add(new ConsoleTraceListener());
+
             sd.KeepaliveCheckInterval = 10;
             sd.KeepaliveTcp = true;
 
-            sd.HostDiscovered += (dir, svc) => { Console.WriteLine("Service discovered: {0}", svc); };
-            sd.HostRemoved += (dir, svc) => { Console.WriteLine("Service removed: {0}", svc); };
-            sd.HostUpdated += (dir, svc) => { Console.WriteLine("Service updated: {0}", svc); };
+            sd.HostDiscovered += (dir, svc) => { if (LogDiscovery) Console.WriteLine("Service discovered: {0}", svc); };
+            sd.HostRemoved += (dir, svc) => { if (LogRemoval) Console.WriteLine("Service removed: {0}", svc); };
+            sd.HostUpdated += (dir, svc) => { if (LogUpdate) Console.WriteLine("Service updated: {0}", svc); };
 
             sd.Init();
         }

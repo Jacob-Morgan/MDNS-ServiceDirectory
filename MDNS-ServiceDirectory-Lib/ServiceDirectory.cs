@@ -40,6 +40,11 @@ namespace Termors.Nuget.MDNSServiceDirectory
             get; set;
         } = 60;
 
+        public uint KeepaliveTimeout
+        {
+            get; set;
+        } = 5;
+
         public bool KeepalivePing
         {
             get; set;
@@ -232,7 +237,7 @@ namespace Termors.Nuget.MDNSServiceDirectory
             if (KeepalivePing)
             {
                 Ping ping = new Ping();
-                var result = ping.Send(ip, 1000);
+                var result = ping.Send(ip, (int) KeepaliveTimeout * 1000);
 
                 if (result.Status != IPStatus.Success)
                 {
@@ -246,7 +251,7 @@ namespace Termors.Nuget.MDNSServiceDirectory
             {
                 using (var sock = new KeepaliveSocket(ip, svc.Port))
                 {
-                    bool tcpConnected = sock.CanConnect();
+                    bool tcpConnected = sock.CanConnect((int) KeepaliveTimeout * 1000);
                     if (!tcpConnected)
                     {
                         Debug.WriteLine("Removed service {0} at {1}:{2} due to Tcp Connect failure", svc.Service, svc.Host, svc.Port);
